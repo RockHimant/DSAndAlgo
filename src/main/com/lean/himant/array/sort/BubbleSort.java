@@ -1,4 +1,4 @@
-package com.learn.himant.array;
+package com.lean.himant.array.sort;
 
 /**
  * Program to sort an given integer array using Bubble sort algorithm
