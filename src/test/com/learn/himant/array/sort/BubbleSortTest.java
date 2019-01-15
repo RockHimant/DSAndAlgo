@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.lean.himant.array.sort.BubbleSort;
+import com.learn.himant.array.sort.BubbleSort;
 
 public class BubbleSortTest {
 

@@ -2,9 +2,10 @@ package com.learn.himant.array.sort;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import com.lean.himant.array.sort.QuickSort;
+import com.learn.himant.array.sort.QuickSort;
+
+import static org.junit.Assert.*;
 
 public class QuickSortTest {
 

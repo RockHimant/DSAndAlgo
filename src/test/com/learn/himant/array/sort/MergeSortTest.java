@@ -5,7 +5,7 @@ import static org.junit.Assert.assertArrayEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.lean.himant.array.sort.MergeSort;
+import com.learn.himant.array.sort.MergeSort;
 
 public class MergeSortTest {
 	

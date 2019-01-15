@@ -1,4 +1,4 @@
-package com.lean.himant.array.sort;
+package com.learn.himant.array.sort;
 
 /**
  * First select the partition index in order to sort the array.

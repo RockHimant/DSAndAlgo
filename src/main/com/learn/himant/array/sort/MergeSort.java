@@ -1,4 +1,4 @@
-package com.lean.himant.array.sort;
+package com.learn.himant.array.sort;
 
 public class MergeSort {
 
