@@ -20,9 +20,7 @@ public class MaxSumOfSubArray {
             return 0;
         }
 
-        int i = 0;
-        int j = 0;
-        int maxSum = Integer.MIN_VALUE;
+        int i = 0;  int j = 0;  int maxSum = Integer.MIN_VALUE;
         int sum = 0;
         while (j < arr.length) {
             sum += arr[j];
