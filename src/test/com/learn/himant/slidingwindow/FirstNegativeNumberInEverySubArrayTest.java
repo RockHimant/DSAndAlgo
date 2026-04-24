@@ -41,7 +41,7 @@ public class FirstNegativeNumberInEverySubArrayTest {
         int k = 2;
         int[] result = obj.solve(arr, k);
         for (int num : result) {
-            System.out.print(num + " ");+
+            System.out.print(num + " ");
         }
 
         assertArrayEquals(new int[]{0, 0, 0}, result);
