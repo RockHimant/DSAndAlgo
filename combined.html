@@ -1,0 +1,488 @@
+<h2>FindOccurancesOfAnagram.java</h2><pre><code>
+<div class="highlight"><pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nn">slidingwindow</span><span class="p">;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.HashMap</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Map</span><span class="p">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Finds the count of occurrences of anagrams of a pattern within a given text.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Problem Statement:</span>
+<span class="cm"> * Given a pattern string pat and a text string txt, return the count of </span>
+<span class="cm"> * all occurrences of anagrams of the pattern in the text.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Examples:</span>
+<span class="cm"> * - Input: txt = &quot;forxxorfxdofr&quot;, pat = &quot;for&quot;</span>
+<span class="cm"> *   Output: 3</span>
+<span class="cm"> *   Explanation: &quot;for&quot;, &quot;orf&quot;, and &quot;ofr&quot; are anagrams appearing in the text.</span>
+<span class="cm"> * - Input: txt = &quot;aabaabaa&quot;, pat = &quot;aaba&quot;</span>
+<span class="cm"> *   Output: 4</span>
+<span class="cm"> *   Explanation: &quot;aaba&quot; appears 4 times as an anagram in the text.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Algorithm:</span>
+<span class="cm"> * This class uses a Sliding Window approach with a HashMap to efficiently find anagrams:</span>
+<span class="cm"> * 1. Build a frequency map of all characters in the pattern.</span>
+<span class="cm"> * 2. Use a sliding window of size equal to the pattern length over the text.</span>
+<span class="cm"> * 3. For each position, update the frequency map by:</span>
+<span class="cm"> *    - Decrementing the count of the newly added character (right end of window).</span>
+<span class="cm"> *    - Incrementing the count of the removed character (left end of window).</span>
+<span class="cm"> * 4. When the window is full, check if all character frequencies are zero (indicating an anagram).</span>
+<span class="cm"> * 5. Slide the window by moving both pointers and repeat until the text is exhausted.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Time Complexity: O(n + m)</span>
+<span class="cm"> * - Building the pattern frequency map: O(m), where m = length of pattern.</span>
+<span class="cm"> * - Main sliding window loop: O(n), where n = length of text.</span>
+<span class="cm"> *   - Each character in the text is processed exactly once (added and removed from the window).</span>
+<span class="cm"> *   - HashMap operations (put, getOrDefault) are O(1) on average.</span>
+<span class="cm"> *   - The anagram check (iterating through map values) is O(k), where k is the number of </span>
+<span class="cm"> *     unique characters in the pattern (at most 26 for lowercase English letters, hence effectively O(1)).</span>
+<span class="cm"> *   - The anagram check is performed O(n - m + 1) times, which is O(n).</span>
+<span class="cm"> * - Overall: O(n + m)</span>
+<span class="cm"> * </span>
+<span class="cm"> * Space Complexity: O(k)</span>
+<span class="cm"> * - The HashMap stores at most k unique characters, where k = number of unique characters in the pattern.</span>
+<span class="cm"> * - For lowercase English letters, k ≤ 26, so space complexity is effectively O(1).</span>
+<span class="cm"> * - For general Unicode characters, space complexity is O(k).</span>
+<span class="cm"> * </span>
+<span class="cm"> * Key Advantages:</span>
+<span class="cm"> * - Efficient: Avoids redundant character comparisons using the sliding window technique.</span>
+<span class="cm"> * - Flexible: The HashMap approach works with any character set (not limited to lowercase letters).</span>
+<span class="cm"> * - Clean: The getOrDefault method simplifies character frequency management.</span>
+<span class="cm"> * </span>
+<span class="cm"> * @author Himant</span>
+<span class="cm"> */</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">FindOccurancesOfAnagram</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * Counts the number of anagrams of the pattern found in the text.</span>
+<span class="cm">     * </span>
+<span class="cm">     * Algorithm Flow:</span>
+<span class="cm">     * 1. Validate inputs: Return 0 if text or pattern is null, or if pattern is longer than text.</span>
+<span class="cm">     * 2. Build frequency map of pattern characters.</span>
+<span class="cm">     * 3. Initialize sliding window pointers: i (left) and j (right).</span>
+<span class="cm">     * 4. Expand window by incrementing j until window size equals pattern length.</span>
+<span class="cm">     * 5. When window is full, check if all frequencies are zero (anagram found).</span>
+<span class="cm">     * 6. Slide window: Remove left character and add right character.</span>
+<span class="cm">     * 7. Repeat until entire text is processed.</span>
+<span class="cm">     * </span>
+<span class="cm">     * Time Complexity: O(n + m)</span>
+<span class="cm">     * - Pattern frequency map building: O(m)</span>
+<span class="cm">     * - Text processing via sliding window: O(n)</span>
+<span class="cm">     * - Anagram verification (worst case): O(k), where k ≤ 26 (constant for English letters)</span>
+<span class="cm">     * </span>
+<span class="cm">     * Space Complexity: O(k), where k is the number of unique characters in the pattern.</span>
+<span class="cm">     * </span>
+<span class="cm">     * @param txt the text string to search for anagrams (may contain null)</span>
+<span class="cm">     * @param pat the pattern string to find anagrams of (may contain null)</span>
+<span class="cm">     * @return the count of anagrams of pat found in txt;</span>
+<span class="cm">     *         returns 0 if txt or pat is null, or if pat is longer than txt</span>
+<span class="cm">     * </span>
+<span class="cm">     * @example</span>
+<span class="cm">     * FindOccurancesOfAnagram finder = new FindOccurancesOfAnagram();</span>
+<span class="cm">     * int result = finder.solve(&quot;forxxorfxdofr&quot;, &quot;for&quot;);  // Returns 3</span>
+<span class="cm">     * int result2 = finder.solve(&quot;aabaabaa&quot;, &quot;aaba&quot;);     // Returns 4</span>
+<span class="cm">     *</span>
+<span class="cm">     * int result = finder.solve(&quot;forxxorfxdofr&quot;, &quot;for&quot;);  // Returns 3</span>
+<span class="cm">     * int result2 = finder.solve(&quot;aabaabaa&quot;, &quot;aaba&quot;);     // Returns 4</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">txt</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">pat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">txt</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">pat</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">txt</span><span class="p">.</span><span class="na">length</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">pat</span><span class="p">.</span><span class="na">length</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">Character</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="n">ch</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">pat</span><span class="p">.</span><span class="na">toCharArray</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">count</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">.</span><span class="na">getOrDefault</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">anagramCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">txt</span><span class="p">.</span><span class="na">length</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">char</span><span class="w"> </span><span class="n">currentChar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">txt</span><span class="p">.</span><span class="na">charAt</span><span class="p">(</span><span class="n">j</span><span class="p">);</span>
+<span class="w">            </span><span class="n">count</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">currentChar</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">.</span><span class="na">getOrDefault</span><span class="p">(</span><span class="n">currentChar</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">pat</span><span class="p">.</span><span class="na">length</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">pat</span><span class="p">.</span><span class="na">length</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="kt">boolean</span><span class="w"> </span><span class="n">isAnagram</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<span class="w">                </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">num</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">count</span><span class="p">.</span><span class="na">values</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">num</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">isAnagram</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+<span class="w">                        </span><span class="k">break</span><span class="p">;</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isAnagram</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">anagramCount</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="kt">char</span><span class="w"> </span><span class="n">leftChar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">txt</span><span class="p">.</span><span class="na">charAt</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+<span class="w">                </span><span class="n">count</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">leftChar</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">.</span><span class="na">getOrDefault</span><span class="p">(</span><span class="n">leftChar</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">                </span><span class="n">i</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">anagramCount</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h2>FirstNegativeNumberInEverySubArray.java</h2><pre><code>
+<div class="highlight"><pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nn">slidingwindow</span><span class="p">;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.*</span><span class="p">;</span>
+
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">FirstNegativeNumberInEverySubArray</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">arr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="n">Deque</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">deque</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="na">util</span><span class="p">.</span><span class="na">LinkedList</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">int</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">int</span><span class="o">[</span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="o">]</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">deque</span><span class="p">.</span><span class="na">offerLast</span><span class="p">(</span><span class="n">j</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">deque</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">result</span><span class="o">[</span><span class="n">index</span><span class="o">++]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">deque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="o">]</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">result</span><span class="o">[</span><span class="n">index</span><span class="o">++]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">deque</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">deque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">deque</span><span class="p">.</span><span class="na">pollFirst</span><span class="p">();</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="n">i</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h2>LargestSubArrayWithSumK.java</h2><pre><code>
+<div class="highlight"><pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nn">slidingwindow</span><span class="p">;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.HashMap</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Map</span><span class="p">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Finds the length of the largest subarray with sum equal to k.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Problem Statement:</span>
+<span class="cm"> * Given an array of integers and a target sum k, find the length of the longest </span>
+<span class="cm"> * contiguous subarray that sums to exactly k. The array may contain positive, </span>
+<span class="cm"> * negative, and zero values.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Algorithm:</span>
+<span class="cm"> * This class uses prefix sums with a HashMap to efficiently find subarrays with sum k:</span>
+<span class="cm"> * - Compute prefix sums as we iterate through the array</span>
+<span class="cm"> * - Use a HashMap to store the earliest index where each prefix sum was seen</span>
+<span class="cm"> * - For each position, check if (prefixSum - k) exists in the map</span>
+<span class="cm"> * - If found, the subarray from map index + 1 to current index sums to k</span>
+<span class="cm"> * - Track the maximum length found</span>
+<span class="cm"> * - Store prefix sums only when first encountered to ensure earliest start index</span>
+<span class="cm"> * </span>
+<span class="cm"> * Time Complexity: O(n)</span>
+<span class="cm"> * - Single pass through the array</span>
+<span class="cm"> * - HashMap operations are O(1) on average</span>
+<span class="cm"> * - Total time is linear in the size of the input</span>
+<span class="cm"> * </span>
+<span class="cm"> * Space Complexity: O(n)</span>
+<span class="cm"> * - HashMap stores at most n+1 entries (one for each prefix sum)</span>
+<span class="cm"> * - In worst case, all prefix sums are unique</span>
+<span class="cm"> * </span>
+<span class="cm"> * Key Advantages:</span>
+<span class="cm"> * - Handles negative numbers correctly (unlike sliding window for positives only)</span>
+<span class="cm"> * - Efficient O(n) time complexity</span>
+<span class="cm"> * - Uses constant extra space beyond the HashMap</span>
+<span class="cm"> * </span>
+<span class="cm"> * @author Himant</span>
+<span class="cm"> */</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LargestSubArrayWithSumK</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * Computes the length of the largest subarray with sum equal to k.</span>
+<span class="cm">     * </span>
+<span class="cm">     * Algorithm Flow:</span>
+<span class="cm">     * 1. Handle edge cases: return 0 for null or empty arrays</span>
+<span class="cm">     * 2. Initialize HashMap with prefix sum 0 at index -1</span>
+<span class="cm">     * 3. Iterate through each element in the array:</span>
+<span class="cm">     *    - Add current element to prefix sum</span>
+<span class="cm">     *    - Check if (prefixSum - k) exists in map</span>
+<span class="cm">     *    - If found, calculate length from stored index to current</span>
+<span class="cm">     *    - Update maximum length if this is larger</span>
+<span class="cm">     *    - Store current prefix sum in map (only if not already present)</span>
+<span class="cm">     * 4. Return the maximum length found</span>
+<span class="cm">     * </span>
+<span class="cm">     * Time Complexity: O(n), where n is the length of the array</span>
+<span class="cm">     * - Each element is processed exactly once</span>
+<span class="cm">     * - HashMap lookups and insertions are O(1) average case</span>
+<span class="cm">     * </span>
+<span class="cm">     * Space Complexity: O(n)</span>
+<span class="cm">     * - HashMap may store up to n different prefix sums</span>
+<span class="cm">     * - Worst case occurs when all prefix sums are unique</span>
+<span class="cm">     * </span>
+<span class="cm">     * @param arr the input array of integers (may contain negatives, positives, zeros)</span>
+<span class="cm">     * @param k the target sum to find in subarrays</span>
+<span class="cm">     * @return the length of the longest subarray with sum equal to k;</span>
+<span class="cm">     *         returns 0 if no such subarray exists or if arr is null/empty</span>
+<span class="cm">     * </span>
+<span class="cm">     * Example:</span>
+<span class="cm">     * LargestSubArrayWithSumK finder = new LargestSubArrayWithSumK();</span>
+<span class="cm">     * int result = finder.solve(new int[]{10, 5, 2, 7, 1, -10}, 15);</span>
+<span class="cm">     * // Returns 6 (entire array sums to 15)</span>
+<span class="cm">     * int result2 = finder.solve(new int[]{1, 2, 3}, 5);</span>
+<span class="cm">     * // Returns 2 ([2,3] sums to 5)</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">arr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">prefixMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<span class="w">        </span><span class="n">prefixMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// prefix sum 0 at index -1</span>
+
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">prefixSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">maxLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">prefixSum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="p">;</span>
+
+<span class="w">            </span><span class="c1">// Check if prefixSum - k exists in map</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">prefixMap</span><span class="p">.</span><span class="na">containsKey</span><span class="p">(</span><span class="n">prefixSum</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="kt">int</span><span class="w"> </span><span class="n">startIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">prefixMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">prefixSum</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="p">);</span>
+<span class="w">                </span><span class="kt">int</span><span class="w"> </span><span class="n">length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startIndex</span><span class="p">;</span>
+<span class="w">                </span><span class="n">maxLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">max</span><span class="p">(</span><span class="n">maxLength</span><span class="p">,</span><span class="w"> </span><span class="n">length</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// Store the earliest index for this prefix sum</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">prefixMap</span><span class="p">.</span><span class="na">containsKey</span><span class="p">(</span><span class="n">prefixSum</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">prefixMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">prefixSum</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">maxLength</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h2>MaxOfAllSubArrayofSizeK.java</h2><pre><code>
+<div class="highlight"><pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nn">slidingwindow</span><span class="p">;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Deque</span><span class="p">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Finds the maximum element in each subarray of size k using a sliding window approach.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Problem Statement:</span>
+<span class="cm"> * Given an array of integers and a window size k, return an array containing the maximum</span>
+<span class="cm"> * element from each subarray of size k.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Algorithm:</span>
+<span class="cm"> * This class uses a Deque (double-ended queue) to maintain the indices of elements in decreasing order:</span>
+<span class="cm"> * - The deque stores indices of array elements in decreasing order of their values.</span>
+<span class="cm"> * - For each new element, remove elements from the back of the deque that are smaller than the current element.</span>
+<span class="cm"> * - When the window is full, the front of the deque contains the index of the maximum element in the current window.</span>
+<span class="cm"> * - Slide the window by removing elements from the front that are out of the current window.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Time Complexity: O(n)</span>
+<span class="cm"> * - Each element is added to and removed from the deque exactly once.</span>
+<span class="cm"> * - Amortized time for deque operations is O(1) per element.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Space Complexity: O(k)</span>
+<span class="cm"> * - The deque stores at most k elements (indices of the current window).</span>
+<span class="cm"> * </span>
+<span class="cm"> * @author Himant</span>
+<span class="cm"> */</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MaxOfAllSubArrayofSizeK</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * Computes the maximum element for each subarray of size k.</span>
+<span class="cm">     * </span>
+<span class="cm">     * Algorithm Flow:</span>
+<span class="cm">     * 1. Validate inputs: Return empty array if arr is null/empty or k &lt;= 0.</span>
+<span class="cm">     * 2. Initialize deque to store indices in decreasing order of values.</span>
+<span class="cm">     * 3. Iterate through the array with pointer j:</span>
+<span class="cm">     *    - Remove from deque back if current element is larger.</span>
+<span class="cm">     *    - Add current index to deque.</span>
+<span class="cm">     *    - If window size &lt; k, continue.</span>
+<span class="cm">     *    - If window size == k, record max from deque front, slide window.</span>
+<span class="cm">     * 4. Return the result array.</span>
+<span class="cm">     * </span>
+<span class="cm">     * Time Complexity: O(n), where n is the length of the array.</span>
+<span class="cm">     * Space Complexity: O(k), for the deque.</span>
+<span class="cm">     * </span>
+<span class="cm">     * @param arr the input array of integers</span>
+<span class="cm">     * @param k the size of the sliding window</span>
+<span class="cm">     * @return an array containing the maximum of each subarray of size k;</span>
+<span class="cm">     *         returns empty array if arr is null/empty or k &lt;= 0</span>
+<span class="cm">     * </span>
+<span class="cm">     * Example:</span>
+<span class="cm">     * MaxOfAllSubArrayofSizeK finder = new MaxOfAllSubArrayofSizeK();</span>
+<span class="cm">     * int[] result = finder.solve(new int[]{1, 3, -1, -3, 5, 3, 6, 7}, 3);</span>
+<span class="cm">     * // Returns [3, 3, 5, 5, 6, 7]</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">arr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">int</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">int</span><span class="o">[</span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="o">]</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="n">Deque</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">deque</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="na">util</span><span class="p">.</span><span class="na">LinkedList</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">deque</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">deque</span><span class="p">.</span><span class="na">peekLast</span><span class="p">()</span><span class="o">]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">deque</span><span class="p">.</span><span class="na">pollLast</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">deque</span><span class="p">.</span><span class="na">offerLast</span><span class="p">(</span><span class="n">j</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">result</span><span class="o">[</span><span class="n">index</span><span class="o">++]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">deque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="o">]</span><span class="p">;</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">deque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">deque</span><span class="p">.</span><span class="na">pollFirst</span><span class="p">();</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="n">i</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h2>MaxSumOfSubArray.java</h2><pre><code>
+<div class="highlight"><pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nn">slidingwindow</span><span class="p">;</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Given an array of integers arr[] and a number k. Return the maximum sum of a</span>
+<span class="cm"> * subarray of size k.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Input: arr[] = [100, 200, 300, 400], k = 2</span>
+<span class="cm"> * Output: 700</span>
+<span class="cm"> * Explanation: arr2 + arr3 = 700, which is maximum.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Input: arr[] = [1, 4, 2, 10, 23, 3, 1, 0, 20], k = 4</span>
+<span class="cm"> * Output: 39</span>
+<span class="cm"> * Explanation: arr1 + arr2 + arr3 + arr4 = 39, which is maximum.</span>
+<span class="cm"> */</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MaxSumOfSubArray</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">arr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">maxSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Integer</span><span class="p">.</span><span class="na">MIN_VALUE</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="p">;</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">maxSum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Math</span><span class="p">.</span><span class="na">max</span><span class="p">(</span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">maxSum</span><span class="p">);</span>
+<span class="w">                </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="p">;</span>
+<span class="w">                </span><span class="n">i</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">maxSum</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h2>SumOfMinAndMaxInSubArray.java</h2><pre><code>
+<div class="highlight"><pre><span></span><span class="kn">package</span><span class="w"> </span><span class="nn">slidingwindow</span><span class="p">;</span>
+
+<span class="cm">/* *</span>
+<span class="cm"> * Given an array of both positive and negative integers, </span>
+<span class="cm"> * the task is to compute sum of minimum and maximum elements of all sub-array of size k.</span>
+<span class="cm"> * </span>
+<span class="cm"> * Input : arr[] = {2, 5, -1, 7, -3, -1, -2}  </span>
+<span class="cm">*   K = 4</span>
+<span class="cm">*   Output : 18</span>
+<span class="cm">*   Explanation : Subarrays of size 4 are : </span>
+<span class="cm">*    {2, 5, -1, 7},   min + max = -1 + 7 = 6</span>
+<span class="cm">*    {5, -1, 7, -3},  min + max = -3 + 7 = 4      </span>
+<span class="cm">*    {-1, 7, -3, -1}, min + max = -3 + 7 = 4</span>
+<span class="cm">*    {7, -3, -1, -2}, min + max = -3 + 7 = 4   </span>
+<span class="cm">*/</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Deque</span><span class="p">;</span>
+
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SumOfMinAndMaxInSubArray</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="kt">int</span><span class="o">[]</span><span class="w"> </span><span class="n">arr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">        </span><span class="n">Deque</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">maxDeque</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="na">util</span><span class="p">.</span><span class="na">LinkedList</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<span class="w">        </span><span class="n">Deque</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">minDeque</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="na">util</span><span class="p">.</span><span class="na">LinkedList</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">arr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">minVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Integer</span><span class="p">.</span><span class="na">MAX_VALUE</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">maxVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Integer</span><span class="p">.</span><span class="na">MIN_VALUE</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">arr</span><span class="p">.</span><span class="na">length</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">minDeque</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">minDeque</span><span class="p">.</span><span class="na">peekLast</span><span class="p">()</span><span class="o">]</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">minDeque</span><span class="p">.</span><span class="na">pollLast</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">minDeque</span><span class="p">.</span><span class="na">offerLast</span><span class="p">(</span><span class="n">j</span><span class="p">);</span>
+<span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">maxDeque</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">maxDeque</span><span class="p">.</span><span class="na">peekLast</span><span class="p">()</span><span class="o">]</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">j</span><span class="o">]</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">maxDeque</span><span class="p">.</span><span class="na">pollLast</span><span class="p">();</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">maxDeque</span><span class="p">.</span><span class="na">offerLast</span><span class="p">(</span><span class="n">j</span><span class="p">);</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">minVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">minDeque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="o">]</span><span class="p">;</span>
+<span class="w">                </span><span class="n">maxVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arr</span><span class="o">[</span><span class="n">maxDeque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="o">]</span><span class="p">;</span>
+<span class="w">                </span><span class="n">sum</span><span class="w">  </span><span class="o">+=</span><span class="w"> </span><span class="n">minVal</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">maxVal</span><span class="p">;</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">minDeque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">minDeque</span><span class="p">.</span><span class="na">pollFirst</span><span class="p">();</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">maxDeque</span><span class="p">.</span><span class="na">peekFirst</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">maxDeque</span><span class="p">.</span><span class="na">pollFirst</span><span class="p">();</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="n">i</span><span class="o">++</span><span class="p">;</span>
+<span class="w">                </span><span class="n">j</span><span class="o">++</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">sum</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+</body></html>
