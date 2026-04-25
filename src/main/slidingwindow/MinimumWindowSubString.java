@@ -60,7 +60,7 @@ public class MinimumWindowSubString {
      *         returns empty string if no such window exists or inputs are invalid
      */
     public String solve(String s, String t) {
-        if (s == null || t == null || s.length() < t.length()) {
+        if (s == null || t == null || t.isEmpty() || s.length() < t.length()) {
             return "";
         }
 

@@ -43,6 +43,6 @@ public class MinimumWindowSubStringTest {
 
     @Test
     public void testLargerWindow() {
-        assertEquals("cabwef", solution.solve("aabcbcdbca", "abc"));
+        assertEquals("abc", solution.solve("aabcbcdbca", "abc"));
     }
 }
