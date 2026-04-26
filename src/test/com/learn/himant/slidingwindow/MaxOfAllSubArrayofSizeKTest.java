@@ -118,4 +118,15 @@ public class MaxOfAllSubArrayofSizeKTest {
         assertArrayEquals(expected, result);
     }
 
+    @Test 
+    public void shouldPassNeat150Input() {
+        MaxOfAllSubArrayofSizeK obj = new MaxOfAllSubArrayofSizeK();
+        int[] arr = {7,2,4};
+        int k = 2;
+        int[] expected = {7,4};
+        int[] result = obj.solve(arr, k);
+        System.out.println("Test Neat150 - Result: " + java.util.Arrays.toString(result));
+        assertArrayEquals(expected, result);
+    }
+
 }
